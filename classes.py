@@ -316,10 +316,9 @@ class Sweeper(BaseModel):
         total_gas = int(gas * gas_price * 1.1)
         amount = current_eth_bal - total_gas
 
+        # only dust left, just leave it here
         if amount < 0:
             print(f"[Sweeper] Insuffient gas for account: {sender.address}")
-            signer_obj = Account(constants.SIGNER, constants.SIGNER_PKEY)
-            self.send_gas(signer_obj, sender.address)
             return
 
         eth.send_eth(
@@ -330,7 +329,7 @@ class Sweeper(BaseModel):
 
         if debug:
             print(
-                f"[Sweeper] {amount/10**18} of ETH is return back to admin from {sender.address}"
+                f"[Sweeper] {amount/10**18} of ETH is returned back to admin from {sender.address}"
             )
 
     def get_balances_breakdown(self, acc: Account):
