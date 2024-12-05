@@ -6,7 +6,7 @@ anvil --fork-url https://eth.llamarpc.com --port <PORT>
 
 ### Update Config in `config.py`
 
-PORT = <PORT>
+PORT = `<PORT>`
 
 ### Start simulating
 
