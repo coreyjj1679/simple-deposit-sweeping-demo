@@ -1,7 +1,9 @@
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
+from classes import Account
 import json
 import constants
+import ERC20
 
 
 def connect_web3(endpoint: str) -> Web3.HTTPProvider | None:
@@ -28,10 +30,6 @@ def abi_loader(file_path: str) -> any:
         return json.load(f)
 
 
-def get_erc20_abi():
-    return abi_loader("abis/ERC20.json")
-
-
 def create_erc20(
     provider,
     name,
@@ -41,11 +39,9 @@ def create_erc20(
     signer=constants.SIGNER,
     signer_pkey=constants.SIGNER_PKEY,
 ) -> str | None:
-    abi = get_erc20_abi()
-    token_contract = provider.eth.contract(abi=abi, bytecode=constants.ERC20_BYTECODE)
-
+    token_contract = provider.eth.contract(abi=ERC20.abi, bytecode=ERC20.bytecode)
     construct_tx = token_contract.constructor(
-        _initialSupply=supply, _name=name, _symbol=symbol, _decimals=decimals
+        name=name, symbol=symbol, _decimals=decimals, supply=supply
     ).build_transaction(
         {"nonce": provider.eth.get_transaction_count(signer), "gas": 10_000_000}
     )
@@ -76,24 +72,25 @@ def contract_loader(provider, contract_address, abi):
     return provider.eth.contract(address=checksum_addr, abi=abi)
 
 
-def get_contract_instance(provider, contract_address, abi_path):
+def get_contract_instance(provider, contract_address):
     """
     :param provider: web3 provider object
     :param contract_address: contract address
     :param file_path: file path of contract abi
     :return: contract abi object, contract instance
     """
-    contract_abi = abi_loader(abi_path)
+    contract_abi = ERC20.abi
     contract_instance = contract_loader(provider, contract_address, contract_abi)
 
     return {"abi": contract_abi, "instance": contract_instance}
 
 
-def get_erc20_instance(provider, token_address):
-    erc20_path = "abis/ERC20.json"
-    return get_contract_instance(provider, token_address, erc20_path)
-
-
 def get_json(path):
     with open(path, "r") as file:
         return json.load(file)
+
+
+def create_new_account(provider) -> Account:
+    acc = provider.eth.account.create()
+
+    return Account(address=acc.address, private_key=provider.to_hex(acc.key))
